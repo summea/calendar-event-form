@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <title>Calendar Event Form</title>
+    <!-- ref: https://stackoverflow.com/a/36814112/1167750 -->
+    <!-- ref: cal.html -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- ref: https://getbootstrap.com/docs/5.1/getting-started/introduction/ -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <style>
+      #calendar {
+        width: 100%;
+        height: 600px;
+      }
+
+      #calendarBox {
+        margin-top: 50px;
+        margin-bottom: 100px;
+      }
+
+      #eventDescription {
+        height: 100px;
+      }
+
+      .requiredField {
+        color: #f00;
+        font-weight: bold;
+      }
+
+      .requiredFieldNote {
+        color: #f00;
+      }
+
+      .rowPadding {
+        padding-top: 10px;
+      }
+
+      /* ref: https://developer.mozilla.org/en-US/docs/Web/CSS/Media_Queries
+           /Using_media_queries */
+      @media (max-width: 500px) {
+        .datetimeRowPadding {
+          padding-top: 10px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1 id="formTitle">Calendar Event Form</h1>
+      <a name="messageBox"></a>
+      <div id="messageBox"></div>
+      <!-- ref: https://www.labnol.org/code/19871-get-post-requests-google-script -->
+      <!-- ref: https://getbootstrap.com/docs/5.1/forms/overview/ -->
+      <form action="#">
+        <div class="row rowPadding">
+          <div class="col-sm-12">
+            <label for="eventName" class="form-label" id="eventNameLabel">Event Name:</label><span class="requiredField">*</span>
+            <input type="text" class="form-control" id="eventName" name="eventName" value="" />      
+          </div>
+        </div>
+        <div class="row rowPadding">
+          <div class="col-6 col-sm-3 datetimeRowPadding">
+            <label for="eventStartDate" class="form-label" id="eventStartDateLabel">Event Start Date:</label><span class="requiredField">*</span>
+            <input type="text" class="form-control" id="eventStartDate" name="eventStartDate" />
+          </div>
+          <div class="col-6 col-sm-3 datetimeRowPadding">
+            <label for="eventStartTime" class="form-label" id="eventStartTimeLabel">Event Start Time:</label><span class="requiredField">*</span>
+            <input type="text" class="form-control" id="eventStartTime" name="eventStartTime" />
+          </div>
+          <div class="col-6 col-sm-3 datetimeRowPadding">
+            <label for="eventEndDate" class="form-label" id="eventEndDateLabel">Event End Date:</label><span class="requiredField">*</span>
+            <input type="text" class="form-control" id="eventEndDate" name="eventEndDate" />
+          </div>
+          <div class="col-6 col-sm-3 datetimeRowPadding">
+            <label for="eventEndTime" class="form-label" id="eventEndTimeLabel">Event End Time:</label><span class="requiredField">*</span>
+            <input type="text" class="form-control" id="eventEndTime" name="eventEndTime" />
+          </div>
+        </div>
+        <div class="row rowPadding">
+          <div class="col-sm-12">
+            <label for="eventLocation" class="form-label" id="eventLocationLabel">Event Location:</label><span class="requiredField">*</span>
+            <select class="form-control" id="eventLocation" name="eventLocation">
+              <option value="">Please choose a location</option>
+            </select>
+          </div>
+        </div>
+        <div class="row rowPadding">
+          <div class="col-sm-12">
+            <label for="eventDescription" class="form-label" id="eventDescriptionLabel">Event Notes:</label>
+            <textarea class="form-control" id="eventDescription" name="eventDescription"></textarea>
+          </div>
+        </div>
+        <span class="requiredFieldNote">Note: The * means "this is a required field".</span>
+        <div class="row rowPadding">
+          <div class="col-sm-12">
+            <input class="btn btn-success" type="submit" id="formSubmitButton" name="formSubmitButton" value="Submit Form" />
+          </div>
+        </div>
+      </form>
+      <br />
+      <hr />
+      <div id="calendarBox">
+        <!-- Note: This is where a calendar can be embedded if desired -->
+        <iframe id="calendar" src="" frameborder="0" scrolling="no"></iframe>
+      </div>
+    </div>
+    <!-- ref: andrewsummers.com -->
+    <!-- ref: https://stackoverflow.com/a/60165204/1167750 -->
+    <!-- ref: https://flatpickr.js.org/examples/#datetime -->
+    <script>
+      let formTitle = document.getElementById('formTitle');
+      let formSubmitButton = document.getElementById('formSubmitButton');
+      let messageBox = document.getElementById('messageBox');
+      let eventNameLabel = document.getElementById('eventNameLabel');
+      let eventName = document.getElementById('eventName');
+      let eventStartDateLabel = document.getElementById('eventStartDateLabel');
+      let eventStartDate = document.getElementById('eventStartDate');
+      let eventStartTimeLabel = document.getElementById('eventStartTimeLabel');
+      let eventStartTime = document.getElementById('eventStartTime');
+      let eventEndDateLabel = document.getElementById('eventEndDateLabel');
+      let eventEndDate = document.getElementById('eventEndDate');
+      let eventEndTimeLabel = document.getElementById('eventEndTimeLabel');
+      let eventEndTime = document.getElementById('eventEndTime');
+      let eventLocationLabel = document.getElementById('eventLocationLabel');
+      let eventLocation = document.getElementById('eventLocation');
+      let eventDescriptionLabel = document.getElementById('eventDescriptionLabel');
+      let eventDescription = document.getElementById('eventDescription');
+      let calendar = document.getElementById('calendar');
+
+      let eventStartDatePicker = flatpickr("#eventStartDate", {
+        dateFormat: "Y-m-d"
+      });
+
+      let eventEndDatePicker = flatpickr("#eventEndDate", {
+        dateFormat: "Y-m-d"
+      });
+
+      // Use the "event start date" as the "event end date" by default,
+      // but user can change the "event end date" to something else if need be.
+      eventStartDate.addEventListener('change', function() {
+        eventEndDate.value = eventStartDate.value;
+      });
+
+      flatpickr("#eventStartTime", {
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: "H:i"
+      });
+
+      flatpickr("#eventEndTime", {
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: "H:i"
+      });
+
+      function getFormData() {        
+        let eventStartDatetime = eventStartDate.value + ' ' + parseTimeAndPadWithZeros(eventStartTime.value);
+        let eventEndDatetime = eventEndDate.value + ' ' + parseTimeAndPadWithZeros(eventEndTime.value);
+
+        return {
+          'eventName': eventName.value,
+          'eventStartDatetime': eventStartDatetime,
+          'eventEndDatetime': eventEndDatetime,
+          'eventLocation': eventLocation.value,
+          'eventDescription': eventDescription.value
+        }
+      }      
+
+      // ref: https://developer.mozilla.org/en-US/docs/Web/API/Document/readyState
+      document.onreadystatechange = function () {
+        if (document.readyState === 'complete') {
+          // Get event location options for form
+          // ref: https://stackoverflow.com/a/41528400/1167750
+          google.script.run
+            .withSuccessHandler(function(results) {
+              for (let i = 0; i < results.length; i++) {
+                let option = document.createElement('option');
+                option.value = results[i];
+                option.text = results[i];
+                eventLocation.append(option);
+              }
+            })
+            .getLocations();
+
+          google.script.run
+            .withSuccessHandler(function(results) {
+              formTitle.innerHTML = results['formTitle'];
+              formSubmitButton.value = results['formSubmitButton'];
+            })
+            .getFormSettings();
+
+          google.script.run
+            .withSuccessHandler(function(results) {
+              eventNameLabel.innerHTML = results[0];
+              eventStartDateLabel.innerHTML = results[1];
+              eventStartTimeLabel.innerHTML = results[2];
+              eventEndDateLabel.innerHTML = results[3];
+              eventEndTimeLabel.innerHTML = results[4];
+              eventLocationLabel.innerHTML = results[5];
+              eventDescriptionLabel.innerHTML = results[6];
+            })
+            .getFormFieldLabels();
+        }
+      }
+
+      formSubmitButton.addEventListener('click', function(e) {
+        e.preventDefault();
+
+        // Clear out old message
+        messageBox.innerHTML = 'Loading...';
+
+        // Jump back to top of page where error message can be seen
+        // ref: https://stackoverflow.com/a/22434140/1167750
+        window.location.hash = '#';
+        window.location.hash = '#messageBox';
+        
+        let data = getFormData();
+
+        // ref: https://stackoverflow.com/a/41528400/1167750
+        google.script.run
+          .withSuccessHandler(function(result) {
+            // ref: https://stackoverflow.com/a/22434140/1167750
+            window.location.hash = '#messageBox';
+            messageBox.className = 'alert alert-success';
+            // ref: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference
+            //   /Global_Objects/String/search
+            if (result.message.search(/Error:/) != -1) {
+              messageBox.className = 'alert alert-danger';
+              messageBox.innerHTML = result.message;
+              return;
+            }
+
+            messageBox.innerHTML = result.message;
+
+            // Clear form after successful form submission
+            eventName.value = '';
+            eventStartDate.value = '';
+            eventStartTime.value = '';
+            eventEndDate.value = '';
+            eventEndTime.value = '';
+            // ref: https://stackoverflow.com/a/12802962/1167750
+            for (let i = 0; i < eventLocation.options.length; i++) {
+              eventLocation[i].selected = false;
+            }
+            eventDescription.value = '';
+
+            // Refresh calendar iframe after successful post
+            // ref: https://www.geeksforgeeks.org
+            //   /whats-the-best-way-to-reload-refresh-an-iframe/
+            calendar.src += '';
+          })
+          .processForm(data);
+      });
+
+      function parseTimeAndPadWithZeros(input) {
+        let items = input.split(':');
+        return addZeroPad(items[0]) + ':' + addZeroPad(items[1]);
+      }
+
+      function addZeroPad(input) {
+        let n = Number.parseInt(input);
+        // ref: audio project
+        if (n < 10) {
+          let nPadded = '0' + n;
+          return nPadded;
+        }
+        return n + ''
+      }
+    </script>
+  </body>
+</html>
