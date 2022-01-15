@@ -8,4 +8,4 @@ This project allows someone to add a calendar event to a specific Google Calenda
 - Google Apps Script
 
 ## Notes
-This program was originally meant to be run on Google Apps Script platform. Because a lot of the code is written with HTML and JavaScript, however, it might be possible to adapt this code for another environment in the future.
+This program was originally meant to be run on the Google Apps Script platform. Because a lot of the code is written with HTML and JavaScript, however, it might be possible to adapt this code for another environment in the future.
